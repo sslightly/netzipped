@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Module>
+<ModulePrefs title="ripped from classroom resources by github.com/sslightly" />
+<Content type="html"><![CDATA[
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="manifest" href="https://cdn.jsdelivr.net/gh/rz-6-5-z/bsrandm@main/appmanifest.html">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rz-6-5-z/bsrandm@main/style.css">
+<script>
+window.addEventListener("keydown", function(e) {
+    // space and arrow keys
+    if([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+        e.preventDefault();
+    }
+}, false);
+</script>
+</head>
+<body>
+<div id="fb-root"></div>
+    <script src="https://cdn.jsdelivr.net/gh/rz-6-5-z/bsrandm@main/box2d.wasm.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/rz-6-5-z/bsrandm@main/scripts/supportcheck.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/rz-6-5-z/bsrandm@main/scripts/offlineclient.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/rz-6-5-z/bsrandm@main/scripts/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/rz-6-5-z/bsrandm@main/scripts/register-sw.js"></script>
+</body></html>
+
+
+</Content>
+</Module>
