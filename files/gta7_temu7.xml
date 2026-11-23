@@ -1,0 +1,1819 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Module>
+<ModulePrefs title="ripped from classroom resources by github.com/sslightly" />
+<Content type="html"><![CDATA[
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #0b0616;
+            font-family: 'Rajdhani', sans-serif;
+            color: #fff;
+        }
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+        #gameCanvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+            cursor: crosshair;
+        }
+        .neon-text-pink {
+            text-shadow: 0 0 8px rgba(255, 42, 133, 0.8), 0 0 20px rgba(255, 42, 133, 0.5);
+        }
+        .neon-text-cyan {
+            text-shadow: 0 0 8px rgba(0, 240, 255, 0.8), 0 0 20px rgba(0, 240, 255, 0.5);
+        }
+        .neon-border {
+            box-shadow: 0 0 15px rgba(255, 42, 133, 0.3), inset 0 0 10px rgba(0, 240, 255, 0.2);
+            border: 1px solid rgba(255, 42, 133, 0.5);
+        }
+        .glass-panel {
+            background: rgba(14, 10, 28, 0.78);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        @keyframes pulseFast {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        .siren-flash-red {
+            animation: pulseFast 0.4s infinite;
+            color: #ff2a55;
+            text-shadow: 0 0 10px #ff2a55;
+        }
+        .siren-flash-blue {
+            animation: pulseFast 0.4s infinite 0.2s;
+            color: #00d2ff;
+            text-shadow: 0 0 10px #00d2ff;
+        }
+        /* Mobile touch controls */
+        .touch-btn {
+            background: rgba(20, 15, 40, 0.65);
+            border: 2px solid rgba(0, 240, 255, 0.4);
+            border-radius: 50%;
+            backdrop-filter: blur(4px);
+            touch-action: manipulation;
+        }
+        .touch-btn:active {
+            background: rgba(255, 42, 133, 0.5);
+            border-color: #ff2a85;
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body class="relative">
+
+    <!-- Main Game Canvas -->
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Start / Title Screen Overlay -->
+    <div id="startScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-b from-[#160828]/95 via-[#2a0c44]/90 to-[#0c0718]/95 p-6 text-center transition-opacity duration-500">
+        <div class="max-w-2xl w-full glass-panel neon-border rounded-2xl p-8 md:p-10 shadow-2xl">
+            <div class="inline-block px-3 py-1 mb-3 rounded-full bg-pink-500/20 border border-pink-500/40 text-pink-300 text-xs font-orbitron tracking-widest uppercase">
+                Ocean Drive Edition
+            </div>
+            <h1 class="font-orbitron text-4xl md:text-6xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-[#ff2a85] via-[#ff7b54] to-[#00f0ff] neon-text-pink mb-2">
+                VICE CITY 2026
+            </h1>
+            <h2 class="font-orbitron text-xl md:text-2xl font-bold tracking-[0.25em] text-[#00f0ff] neon-text-cyan mb-6">
+                NEON HORIZON
+            </h2>
+            <p class="text-slate-300 text-base md:text-lg mb-8 max-w-lg mx-auto leading-relaxed">
+                Cruise the sun-drenched boulevards and neon-lit beachfronts. Hit stunt ramps, collect neon chips, beat street time trials, and outrun Highway Patrol!
+            </p>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8 text-left text-xs md:text-sm">
+                <div class="bg-white/5 p-3 rounded-xl border border-white/10">
+                    <span class="block text-pink-400 font-bold font-orbitron mb-1">DRIVE</span>
+                    <span class="text-slate-300">W A S D / Arrows</span>
+                </div>
+                <div class="bg-white/5 p-3 rounded-xl border border-white/10">
+                    <span class="block text-cyan-400 font-bold font-orbitron mb-1">DRIFT</span>
+                    <span class="text-slate-300">SPACEBAR</span>
+                </div>
+                <div class="bg-white/5 p-3 rounded-xl border border-white/10">
+                    <span class="block text-amber-400 font-bold font-orbitron mb-1">RESET CAR</span>
+                    <span class="text-slate-300">R Key</span>
+                </div>
+                <div class="bg-white/5 p-3 rounded-xl border border-white/10">
+                    <span class="block text-purple-400 font-bold font-orbitron mb-1">RADIO</span>
+                    <span class="text-slate-300">M Key / HUD</span>
+                </div>
+            </div>
+
+            <button id="startBtn" class="w-full sm:w-auto px-10 py-4 rounded-xl font-orbitron font-bold text-lg tracking-wider text-white bg-gradient-to-r from-[#ff2a85] to-[#7b2cbf] hover:from-[#ff4797] hover:to-[#9d4edd] shadow-[0_0_25px_rgba(255,42,133,0.6)] transition transform hover:scale-105 cursor-pointer">
+                HIT THE STREETS
+            </button>
+        </div>
+    </div>
+
+    <!-- Top-Left HUD: Cash, Score, Time Trial & Heat -->
+    <div id="hudTopLeft" class="fixed top-4 left-4 z-20 flex flex-col gap-2 pointer-events-none">
+        <!-- Cash & Score Card -->
+        <div class="glass-panel neon-border rounded-xl px-4 py-2.5 flex items-center gap-5">
+            <div>
+                <div class="text-[11px] uppercase tracking-widest text-pink-400 font-bold">Vice Cash</div>
+                <div id="cashDisplay" class="font-orbitron text-2xl font-black text-emerald-400 tracking-wide">$0</div>
+            </div>
+            <div class="h-8 w-[1px] bg-white/15"></div>
+            <div>
+                <div class="text-[11px] uppercase tracking-widest text-cyan-400 font-bold">Style Pts</div>
+                <div id="scoreDisplay" class="font-orbitron text-xl font-bold text-white">0</div>
+            </div>
+        </div>
+
+        <!-- Heat / Wanted Level -->
+        <div class="glass-panel rounded-xl px-4 py-2 border border-white/15 flex items-center justify-between gap-3">
+            <span class="text-xs font-orbitron tracking-wider uppercase text-slate-300">Heat Level</span>
+            <div id="heatStars" class="flex items-center gap-1.5 text-lg">
+                <span class="star text-slate-600">★</span>
+                <span class="star text-slate-600">★</span>
+                <span class="star text-slate-600">★</span>
+                <span class="star text-slate-600">★</span>
+                <span class="star text-slate-600">★</span>
+            </div>
+        </div>
+
+        <!-- Time Trial Banner (Hidden unless active) -->
+        <div id="trialPanel" class="hidden glass-panel rounded-xl px-4 py-2.5 border border-cyan-400/60 shadow-[0_0_15px_rgba(0,240,255,0.3)]">
+            <div class="flex items-center justify-between gap-4">
+                <span class="text-xs font-orbitron text-cyan-300 uppercase tracking-wider">Neon Sprint</span>
+                <span id="trialTimer" class="font-orbitron text-lg font-bold text-amber-400">15.0s</span>
+            </div>
+            <div class="text-xs text-slate-300 mt-0.5">Checkpoint <span id="trialProgress" class="text-white font-bold">1/6</span></div>
+        </div>
+    </div>
+
+    <!-- Top-Center Event Toast / Notification Banner -->
+    <div id="eventToastContainer" class="fixed top-5 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-2 pointer-events-none"></div>
+
+    <!-- Top-Right HUD: Mini-Map Radar & Time of Day -->
+    <div class="fixed top-4 right-4 z-20 flex flex-col items-end gap-2">
+        <div class="glass-panel neon-border rounded-2xl p-1.5 shadow-xl relative">
+            <canvas id="minimapCanvas" width="150" height="150" class="rounded-xl block bg-[#0c081a]"></canvas>
+            <div class="absolute bottom-2.5 left-3 right-3 flex justify-between items-center pointer-events-none text-[10px] font-orbitron tracking-wider">
+                <span id="timeOfDayLabel" class="px-1.5 py-0.5 rounded bg-black/60 text-amber-300">SUNSET</span>
+                <span class="px-1.5 py-0.5 rounded bg-black/60 text-cyan-300">OCEAN DR</span>
+            </div>
+        </div>
+
+        <!-- Quick Action Controls -->
+        <div class="flex items-center gap-2">
+            <button id="radioBtn" title="Switch Radio Station (M)" class="glass-panel hover:bg-pink-500/20 border border-pink-500/40 rounded-xl px-3 py-1.5 text-xs font-orbitron flex items-center gap-2 transition cursor-pointer">
+                <span class="w-2 h-2 rounded-full bg-pink-500 animate-ping"></span>
+                <span id="radioStationName" class="text-pink-300 font-bold">WAVE 103.5</span>
+            </button>
+            <button id="resetCarBtn" title="Reset Car Position (R)" class="glass-panel hover:bg-cyan-500/20 border border-cyan-500/40 rounded-xl px-3 py-1.5 text-xs font-orbitron text-cyan-300 transition cursor-pointer">
+                RESET [R]
+            </button>
+        </div>
+    </div>
+
+    <!-- Bottom-Right HUD: Digital Speedometer & Drift Indicator -->
+    <div class="fixed bottom-4 right-4 z-20 pointer-events-none hidden sm:block">
+        <div class="glass-panel neon-border rounded-2xl px-5 py-3 flex items-center gap-4">
+            <div class="text-right">
+                <div class="flex items-baseline justify-end gap-1">
+                    <span id="speedDisplay" class="font-orbitron text-4xl font-black text-white tracking-tight">0</span>
+                    <span class="font-orbitron text-xs text-cyan-400 font-bold">MPH</span>
+                </div>
+                <div class="w-32 h-2 bg-slate-800 rounded-full overflow-hidden mt-1.5 border border-white/10">
+                    <div id="speedBar" class="h-full bg-gradient-to-r from-cyan-400 via-pink-500 to-amber-400 transition-all duration-75" style="width: 0%"></div>
+                </div>
+            </div>
+            <div id="driftBadge" class="px-2.5 py-1.5 rounded-lg bg-slate-800/80 border border-slate-600 text-[11px] font-orbitron font-bold text-slate-400 uppercase tracking-wider">
+                GRIP
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom-Left Controls Legend (Desktop) -->
+    <div class="fixed bottom-4 left-4 z-20 pointer-events-none hidden md:flex items-center gap-3 glass-panel rounded-xl px-3.5 py-2 border border-white/10 text-xs text-slate-300">
+        <span><strong class="text-pink-400 font-orbitron">WASD/Arrows</strong> Drive</span>
+        <span class="text-white/20">|</span>
+        <span><strong class="text-cyan-400 font-orbitron">Space</strong> Drift</span>
+        <span class="text-white/20">|</span>
+        <span><strong class="text-amber-400 font-orbitron">R</strong> Unstuck</span>
+        <span class="text-white/20">|</span>
+        <span><strong class="text-purple-400 font-orbitron">M</strong> Radio</span>
+    </div>
+
+    <!-- Mobile Touch Controls (Visible on touch/small screens) -->
+    <div id="mobileControls" class="fixed bottom-4 inset-x-4 z-30 flex justify-between items-end sm:hidden pointer-events-none">
+        <!-- Steering -->
+        <div class="flex gap-3 pointer-events-auto">
+            <button id="btnLeft" class="touch-btn w-14 h-14 flex items-center justify-center text-cyan-300 text-xl font-bold">◀</button>
+            <button id="btnRight" class="touch-btn w-14 h-14 flex items-center justify-center text-cyan-300 text-xl font-bold">▶</button>
+        </div>
+        <!-- Drift / Brake / Gas -->
+        <div class="flex gap-2.5 items-end pointer-events-auto">
+            <button id="btnDrift" class="touch-btn w-12 h-12 flex items-center justify-center text-amber-300 text-xs font-orbitron font-bold">DRIFT</button>
+            <button id="btnBrake" class="touch-btn w-13 h-13 flex items-center justify-center text-pink-400 text-xs font-orbitron font-bold">REV</button>
+            <button id="btnGas" class="touch-btn w-16 h-16 flex items-center justify-center text-emerald-300 text-sm font-orbitron font-bold border-emerald-400/60">GAS</button>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * VICE CITY 2026: NEON HORIZON
+         * Top-Down Miami / Vice City Open-World Arcade Driving Game
+         */
+
+        // ==========================================
+        // 1. PROCEDURAL SYNTHWAVE RADIO (WEB AUDIO API)
+        // ==========================================
+        class ViceRadio {
+            constructor() {
+                this.ctx = null;
+                this.isPlaying = false;
+                this.stationIndex = 0;
+                this.stations = [
+                    { name: "WAVE 103.5", tempo: 118, style: "synthwave", bassNotes: [55, 55, 65.41, 73.42, 49, 49, 65.41, 82.41] },
+                    { name: "FLASH FM", tempo: 128, style: "outrun", bassNotes: [65.41, 65.41, 77.78, 87.31, 58.27, 58.27, 77.78, 98.00] },
+                    { name: "EMOTION 98.3", tempo: 92, style: "lofi", bassNotes: [49, 61.74, 73.42, 65.41, 43.65, 55, 65.41, 58.27] },
+                    { name: "RADIO OFF", tempo: 0, style: "off", bassNotes: [] }
+                ];
+                this.step = 0;
+                this.timerId = null;
+                this.masterGain = null;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                    this.masterGain = this.ctx.createGain();
+                    this.masterGain.gain.value = 0.22;
+                    this.masterGain.connect(this.ctx.destination);
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            start() {
+                this.init();
+                this.stopLoop();
+                const station = this.stations[this.stationIndex];
+                if (station.style === "off") {
+                    this.isPlaying = false;
+                    return;
+                }
+                this.isPlaying = true;
+                const stepTimeMs = (60 / station.tempo / 2) * 1000; // 8th notes
+                this.timerId = setInterval(() => this.tick(), stepTimeMs);
+            }
+
+            stopLoop() {
+                if (this.timerId) {
+                    clearInterval(this.timerId);
+                    this.timerId = null;
+                }
+            }
+
+            nextStation() {
+                this.stationIndex = (this.stationIndex + 1) % this.stations.length;
+                const station = this.stations[this.stationIndex];
+                document.getElementById('radioStationName').textContent = station.name;
+                this.start();
+                showToast(`📻 TUNED TO: ${station.name}`, "#ff2a85");
+            }
+
+            tick() {
+                if (!this.ctx || !this.isPlaying) return;
+                const station = this.stations[this.stationIndex];
+                if (station.style === "off") return;
+
+                const now = this.ctx.currentTime;
+                const noteFreq = station.bassNotes[this.step % station.bassNotes.length];
+
+                // 1. Driving Synth Bassline
+                const osc = this.ctx.createOscillator();
+                const filter = this.ctx.createBiquadFilter();
+                const gain = this.ctx.createGain();
+
+                osc.type = station.style === "lofi" ? "triangle" : "sawtooth";
+                osc.frequency.setValueAtTime(noteFreq, now);
+
+                filter.type = "lowpass";
+                filter.frequency.setValueAtTime(station.style === "lofi" ? 320 : 650, now);
+                filter.frequency.exponentialRampToValueAtTime(140, now + 0.18);
+
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.masterGain);
+
+                osc.start(now);
+                osc.stop(now + 0.23);
+
+                // 2. Retro Arp Lead every 2nd or 4th step
+                if (this.step % 2 === 0) {
+                    const leadOsc = this.ctx.createOscillator();
+                    const leadGain = this.ctx.createGain();
+                    const arpMult = [2, 3, 4, 2.5][Math.floor(this.step / 2) % 4];
+                    leadOsc.type = station.style === "outrun" ? "square" : "sine";
+                    leadOsc.frequency.setValueAtTime(noteFreq * arpMult, now);
+
+                    leadGain.gain.setValueAtTime(0.1, now);
+                    leadGain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+
+                    leadOsc.connect(leadGain);
+                    leadGain.connect(this.masterGain);
+                    leadOsc.start(now);
+                    leadOsc.stop(now + 0.3);
+                }
+
+                // 3. Kick / Snare pulse
+                if (this.step % 4 === 0) {
+                    this.playKick(now);
+                } else if (this.step % 4 === 2) {
+                    this.playSnare(now);
+                }
+
+                this.step++;
+            }
+
+            playKick(now) {
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.frequency.setValueAtTime(135, now);
+                osc.frequency.exponentialRampToValueAtTime(38, now + 0.12);
+                gain.gain.setValueAtTime(0.55, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+                osc.connect(gain);
+                gain.connect(this.masterGain);
+                osc.start(now);
+                osc.stop(now + 0.15);
+            }
+
+            playSnare(now) {
+                const bufferSize = this.ctx.sampleRate * 0.1;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = "highpass";
+                filter.frequency.value = 900;
+
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.22, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.masterGain);
+                noise.start(now);
+            }
+
+            playSfx(type) {
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                if (type === "coin") {
+                    osc.type = "sine";
+                    osc.frequency.setValueAtTime(880, now);
+                    osc.frequency.setValueAtTime(1318.5, now + 0.06);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+                    osc.connect(gain);
+                    gain.connect(this.masterGain);
+                    osc.start(now);
+                    osc.stop(now + 0.24);
+                } else if (type === "jump") {
+                    osc.type = "sawtooth";
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.exponentialRampToValueAtTime(660, now + 0.35);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.36);
+                    osc.connect(gain);
+                    gain.connect(this.masterGain);
+                    osc.start(now);
+                    osc.stop(now + 0.38);
+                } else if (type === "siren") {
+                    osc.type = "triangle";
+                    osc.frequency.setValueAtTime(620, now);
+                    osc.frequency.linearRampToValueAtTime(880, now + 0.15);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                    osc.connect(gain);
+                    gain.connect(this.masterGain);
+                    osc.start(now);
+                    osc.stop(now + 0.32);
+                }
+            }
+        }
+
+        const radio = new ViceRadio();
+
+        // ==========================================
+        // 2. GAME CONFIGURATION & WORLD CONSTANTS
+        // ==========================================
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const miniCanvas = document.getElementById('minimapCanvas');
+        const miniCtx = miniCanvas.getContext('2d');
+
+        // World dimensions (Top-down Miami metropolis)
+        const WORLD = {
+            width: 4400,
+            height: 4400,
+            tileSize: 110,
+            roadWidth: 220,
+            blockStep: 880, // Roads at 440, 1320, 2200, 3080 (Beach at >3350, Ocean at >3750)
+            beachStartX: 3320,
+            oceanStartX: 3780
+        };
+
+        // Road centers along X and Y
+        const ROAD_X = [440, 1320, 2200, 3080];
+        const ROAD_Y = [440, 1320, 2200, 3080, 3960];
+
+        // Game State
+        const state = {
+            started: false,
+            cash: 250,
+            score: 0,
+            heat: 0,          // 0 to 5
+            heatTimer: 0,     // Cooldown timer when out of sight
+            timeOfDay: 0.25,  // 0 = sunset, 0.5 = midnight neon, 1 = dawn
+            camera: { x: 3080, y: 2200, zoom: 1, shake: 0 },
+            keys: {},
+            timeTrial: {
+                active: false,
+                checkpoints: [],
+                currentIndex: 0,
+                timeLeft: 0
+            }
+        };
+
+        // ==========================================
+        // 3. PLAYER SPORTS CAR (INFERNUS 2026)
+        // ==========================================
+        const player = {
+            x: 3080,
+            y: 2350,
+            vx: 0,
+            vy: 0,
+            angle: -Math.PI / 2,
+            angularVel: 0,
+            width: 28,
+            height: 54,
+            speed: 0,
+            maxSpeed: 760,
+            accel: 680,
+            brakeForce: 820,
+            drifting: false,
+            airborne: 0,       // Z-height simulation for stunt jumps
+            zVel: 0,
+            color: '#ff2a85',
+            accent: '#00f0ff',
+            invulnTimer: 0
+        };
+
+        // ==========================================
+        // 4. WORLD ENTITIES (BUILDINGS, RAMPS, COINS, TRAFFIC, COPS)
+        // ==========================================
+        const buildings = [];
+        const palmTrees = [];
+        const stuntRamps = [];
+        const speedTraps = [];
+        const collectibles = [];
+        const props = []; // Traffic cones, beach umbrellas, neon signs
+        const skidMarks = [];
+        const particles = [];
+        const aiTraffic = [];
+        const policeCars = [];
+        let safeZone = { x: 1320, y: 1320, radius: 130, name: "STARLIGHT PAY 'N' SPRAY" };
+        let trialStartMarker = { x: 3080, y: 1760, radius: 65 };
+
+        // Art Deco Pastel & Neon Colors
+        const BUILDING_PALETTE = [
+            { wall: '#2a1842', trim: '#ff2a85', roof: '#1d1030', name: 'OCEAN VIEW HOTEL' },
+            { wall: '#18324a', trim: '#00f0ff', roof: '#102233', name: 'THE COLONY' },
+            { wall: '#3d1c3a', trim: '#ffbe0b', roof: '#291127', name: 'SUNSET PLAZA' },
+            { wall: '#1b3b36', trim: '#06d6a0', roof: '#112623', name: 'PALM SUITES' },
+            { wall: '#382247', trim: '#c77dff', roof: '#241430', name: 'NEON TOWERS' }
+        ];
+
+        function initWorld() {
+            buildings.length = 0;
+            palmTrees.length = 0;
+            stuntRamps.length = 0;
+            speedTraps.length = 0;
+            collectibles.length = 0;
+            props.length = 0;
+            aiTraffic.length = 0;
+            policeCars.length = 0;
+
+            // 1. Generate Art Deco City Blocks between Roads
+            const xBlocks = [
+                { min: 80, max: 310 },
+                { min: 570, max: 1190 },
+                { min: 1450, max: 2070 },
+                { min: 2330, max: 2950 }
+            ];
+            const yBlocks = [
+                { min: 80, max: 310 },
+                { min: 570, max: 1190 },
+                { min: 1450, max: 2070 },
+                { min: 2330, max: 2950 },
+                { min: 3210, max: 3830 },
+                { min: 4090, max: 4320 }
+            ];
+
+            let bIdx = 0;
+            for (const xb of xBlocks) {
+                for (const yb of yBlocks) {
+                    // Leave block (1,1) open for Safe Zone Plaza
+                    if (xb.min === 570 && yb.min === 570) continue;
+
+                    const pad = 22;
+                    const bx = xb.min + pad;
+                    const by = yb.min + pad;
+                    const bw = (xb.max - xb.min) - pad * 2;
+                    const bh = (yb.max - yb.min) - pad * 2;
+
+                    if (bw > 120 && bh > 120) {
+                        // Split large blocks into 2 Art Deco buildings
+                        const splitVert = bw > bh;
+                        if (splitVert && bw > 340) {
+                            const w1 = bw * 0.47;
+                            buildings.push(createBuilding(bx, by, w1, bh, bIdx++));
+                            buildings.push(createBuilding(bx + bw - w1, by, w1, bh, bIdx++));
+                        } else if (!splitVert && bh > 340) {
+                            const h1 = bh * 0.47;
+                            buildings.push(createBuilding(bx, by, bw, h1, bIdx++));
+                            buildings.push(createBuilding(bx, by + bh - h1, bw, h1, bIdx++));
+                        } else {
+                            buildings.push(createBuilding(bx, by, bw, bh, bIdx++));
+                        }
+                    }
+                }
+            }
+
+            // 2. Palm Trees along Ocean Drive & Beachfront
+            for (let y = 140; y < WORLD.height - 140; y += 190) {
+                // Ocean Drive median/sidewalk palms
+                if (!isOnRoadY(y)) {
+                    palmTrees.push({ x: 3225, y: y, scale: 0.9 + Math.random() * 0.3, phase: Math.random() * Math.PI * 2 });
+                    palmTrees.push({ x: 3360, y: y + 75, scale: 1.0 + Math.random() * 0.3, phase: Math.random() * Math.PI * 2 });
+                }
+                // Beach palms
+                if (y % 380 < 190) {
+                    palmTrees.push({ x: 3550 + (Math.random() - 0.5) * 90, y: y, scale: 1.1, phase: Math.random() * Math.PI * 2 });
+                }
+            }
+
+            // 3. Stunt Ramps (Beach jumps, Pier jumps & Highway boosters)
+            stuntRamps.push(
+                { x: 3560, y: 1200, w: 90, h: 130, angle: 0, label: "BOARDWALK LAUNCH" },
+                { x: 3560, y: 2650, w: 90, h: 130, angle: Math.PI, label: "SOUTH BEACH JUMP" },
+                { x: 2200, y: 1760, w: 85, h: 120, angle: 0, label: "MIDTOWN AIR" },
+                { x: 1320, y: 2640, w: 85, h: 120, angle: 0, label: "DOWNTOWN LEAP" },
+                { x: 3680, y: 2200, w: 120, h: 90, angle: Math.PI / 2, label: "OCEAN PIER STUNT" }
+            );
+
+            // 4. Radar Speed Traps (Trigger Heat if speeding > 105 MPH!)
+            speedTraps.push(
+                { x: 3080, y: 1050, radius: 95, limitMph: 105, cooldown: 0 },
+                { x: 2200, y: 2640, radius: 95, limitMph: 105, cooldown: 0 },
+                { x: 1760, y: 1320, radius: 95, limitMph: 105, cooldown: 0 },
+                { x: 880, y: 3080, radius: 95, limitMph: 105, cooldown: 0 }
+            );
+
+            // 5. Neon Collectible Chips across city & beach
+            for (let i = 0; i < 45; i++) {
+                spawnCollectible();
+            }
+
+            // 6. Traffic Cones & Beach Umbrellas (Bumpable physics props)
+            for (let i = 0; i < 36; i++) {
+                const onBeach = i > 20;
+                const px = onBeach ? 3440 + Math.random() * 260 : ROAD_X[i % ROAD_X.length] + (Math.random() > 0.5 ? 95 : -95);
+                const py = 250 + Math.random() * (WORLD.height - 500);
+                props.push({
+                    x: px,
+                    y: py,
+                    vx: 0,
+                    vy: 0,
+                    radius: onBeach ? 18 : 10,
+                    type: onBeach ? 'umbrella' : 'cone',
+                    color: onBeach ? (i % 2 === 0 ? '#ff2a85' : '#00f0ff') : '#ff7b00'
+                });
+            }
+
+            // 7. Spawn AI Traffic Cars
+            const trafficColors = ['#00f0ff', '#ffbe0b', '#fb5607', '#c77dff', '#06d6a0', '#f8f9fa', '#ff2a85'];
+            for (let i = 0; i < 24; i++) {
+                const horiz = i % 2 === 0;
+                const roadCoord = horiz ? ROAD_Y[i % ROAD_Y.length] : ROAD_X[i % ROAD_X.length];
+                const dir = Math.random() > 0.5 ? 1 : -1;
+                const laneOffset = dir * 48;
+                const posAlong = 200 + Math.random() * (WORLD.width - 600);
+
+                aiTraffic.push({
+                    x: horiz ? posAlong : roadCoord + laneOffset,
+                    y: horiz ? roadCoord + laneOffset : posAlong,
+                    angle: horiz ? (dir === 1 ? 0 : Math.PI) : (dir === 1 ? Math.PI / 2 : -Math.PI / 2),
+                    speed: 170 + Math.random() * 60,
+                    baseSpeed: 170 + Math.random() * 60,
+                    width: 26,
+                    height: 48,
+                    color: trafficColors[i % trafficColors.length],
+                    horiz: horiz,
+                    dir: dir,
+                    waitTimer: 0
+                });
+            }
+        }
+
+        function createBuilding(x, y, w, h, idx) {
+            const style = BUILDING_PALETTE[idx % BUILDING_PALETTE.length];
+            return {
+                x, y, w, h,
+                wall: style.wall,
+                trim: style.trim,
+                roof: style.roof,
+                name: style.name,
+                hasPool: (w > 220 && h > 220 && idx % 3 === 0)
+            };
+        }
+
+        function isOnRoadY(y) {
+            return ROAD_Y.some(ry => Math.abs(y - ry) < 130);
+        }
+
+        function spawnCollectible() {
+            const useRoad = Math.random() < 0.7;
+            let cx, cy;
+            if (useRoad) {
+                if (Math.random() < 0.5) {
+                    cx = ROAD_X[Math.floor(Math.random() * ROAD_X.length)] + (Math.random() - 0.5) * 120;
+                    cy = 200 + Math.random() * (WORLD.height - 400);
+                } else {
+                    cx = 200 + Math.random() * (WORLD.beachStartX - 250);
+                    cy = ROAD_Y[Math.floor(Math.random() * ROAD_Y.length)] + (Math.random() - 0.5) * 120;
+                }
+            } else {
+                // Beachfront pickup
+                cx = WORLD.beachStartX + 60 + Math.random() * 360;
+                cy = 250 + Math.random() * (WORLD.height - 500);
+            }
+            collectibles.push({
+                x: cx,
+                y: cy,
+                value: Math.random() < 0.2 ? 250 : 100,
+                pulse: Math.random() * Math.PI * 2
+            });
+        }
+
+        // ==========================================
+        // 5. TIME TRIAL SYSTEM
+        // ==========================================
+        function startTimeTrial() {
+            state.timeTrial.active = true;
+            state.timeTrial.currentIndex = 0;
+            state.timeTrial.timeLeft = 22.0;
+            state.timeTrial.checkpoints = [
+                { x: 3080, y: 1320 },
+                { x: 2200, y: 1320 },
+                { x: 2200, y: 2200 },
+                { x: 1320, y: 2200 },
+                { x: 1320, y: 3080 },
+                { x: 3080, y: 3080 }
+            ];
+            document.getElementById('trialPanel').classList.remove('hidden');
+            showToast("🏁 NEON SPRINT STARTED! HIT THE CHECKPOINTS!", "#00f0ff");
+            radio.playSfx("jump");
+        }
+
+        // ==========================================
+        // 6. HEAT / WANTED & POLICE CHASE LOGIC
+        // ==========================================
+        function addHeat(amount, reason) {
+            const prev = Math.floor(state.heat);
+            state.heat = Math.min(5, state.heat + amount);
+            state.heatTimer = 14.0; // Seconds to evade
+
+            if (Math.floor(state.heat) > prev || prev === 0) {
+                showToast(`🚨 ${reason} — HEAT LEVEL ${Math.max(1, Math.floor(state.heat))}!`, "#ff2a55");
+                radio.playSfx("siren");
+            }
+            syncPoliceCount();
+        }
+
+        function syncPoliceCount() {
+            const targetCops = Math.min(4, Math.ceil(state.heat));
+            while (policeCars.length < targetCops) {
+                // Spawn cruiser off-screen ahead or behind player on nearest road
+                const spawnAngle = Math.random() * Math.PI * 2;
+                const dist = 750;
+                const sx = clamp(player.x + Math.cos(spawnAngle) * dist, 150, WORLD.beachStartX);
+                const sy = clamp(player.y + Math.sin(spawnAngle) * dist, 150, WORLD.height - 150);
+                policeCars.push({
+                    x: sx,
+                    y: sy,
+                    vx: 0,
+                    vy: 0,
+                    angle: 0,
+                    width: 28,
+                    height: 52,
+                    sirenPhase: Math.random() * 10
+                });
+            }
+            while (policeCars.length > targetCops) {
+                policeCars.pop();
+            }
+        }
+
+        // ==========================================
+        // 7. INPUT HANDLING (KEYBOARD & TOUCH)
+        // ==========================================
+        window.addEventListener('keydown', (e) => {
+            state.keys[e.code] = true;
+            if (e.code === 'KeyR' && state.started) resetPlayerCar();
+            if (e.code === 'KeyM' && state.started) radio.nextStation();
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
+                e.preventDefault();
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            state.keys[e.code] = false;
+        });
+
+        // Mobile touch bindings
+        function bindTouchButton(id, keyCode) {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+            const press = (e) => { e.preventDefault(); state.keys[keyCode] = true; };
+            const release = (e) => { e.preventDefault(); state.keys[keyCode] = false; };
+            btn.addEventListener('touchstart', press, { passive: false });
+            btn.addEventListener('touchend', release, { passive: false });
+            btn.addEventListener('mousedown', press);
+            btn.addEventListener('mouseup', release);
+            btn.addEventListener('mouseleave', release);
+        }
+        bindTouchButton('btnLeft', 'ArrowLeft');
+        bindTouchButton('btnRight', 'ArrowRight');
+        bindTouchButton('btnGas', 'ArrowUp');
+        bindTouchButton('btnBrake', 'ArrowDown');
+        bindTouchButton('btnDrift', 'Space');
+
+        document.getElementById('radioBtn').addEventListener('click', () => radio.nextStation());
+        document.getElementById('resetCarBtn').addEventListener('click', () => resetPlayerCar());
+
+        document.getElementById('startBtn').addEventListener('click', () => {
+            state.started = true;
+            document.getElementById('startScreen').classList.add('opacity-0', 'pointer-events-none');
+            radio.start();
+            showToast("🌴 WELCOME TO VICE CITY 2026!", "#00f0ff");
+        });
+
+        function resetPlayerCar() {
+            // Find nearest road intersection
+            let bestX = ROAD_X[0];
+            let bestY = ROAD_Y[0];
+            let minDist = Infinity;
+            for (const rx of ROAD_X) {
+                for (const ry of ROAD_Y) {
+                    const d = Math.hypot(player.x - rx, player.y - ry);
+                    if (d < minDist) {
+                        minDist = d;
+                        bestX = rx;
+                        bestY = ry;
+                    }
+                }
+            }
+            player.x = bestX;
+            player.y = bestY;
+            player.vx = 0;
+            player.vy = 0;
+            player.airborne = 0;
+            player.zVel = 0;
+            showToast("🔄 VEHICLE REPOSITIONED TO AVENUE", "#ffbe0b");
+        }
+
+        // ==========================================
+        // 8. TOAST NOTIFICATIONS & UTILITIES
+        // ==========================================
+        function showToast(text, color = "#00f0ff") {
+            const container = document.getElementById('eventToastContainer');
+            const toast = document.createElement('div');
+            toast.className = "glass-panel px-4 py-1.5 rounded-full font-orbitron text-xs md:text-sm font-bold tracking-wider shadow-lg transition-all duration-300 transform -translate-y-2 opacity-0";
+            toast.style.border = `1px solid ${color}`;
+            toast.style.color = color;
+            toast.style.textShadow = `0 0 8px ${color}80`;
+            toast.textContent = text;
+            container.appendChild(toast);
+
+            requestAnimationFrame(() => {
+                toast.classList.remove('-translate-y-2', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', '-translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 2400);
+        }
+
+        function clamp(val, min, max) {
+            return Math.max(min, Math.min(max, val));
+        }
+
+        function spawnParticle(x, y, vx, vy, color, size, life) {
+            particles.push({ x, y, vx, vy, color, size, life, maxLife: life });
+        }
+
+        // ==========================================
+        // 9. PHYSICS & SIMULATION UPDATE LOOP
+        // ==========================================
+        function update(dt) {
+            // Day / Sunset / Midnight Neon cycle
+            state.timeOfDay = (state.timeOfDay + dt * 0.012) % 1;
+            const timeLabel = document.getElementById('timeOfDayLabel');
+            if (state.timeOfDay < 0.35) timeLabel.textContent = "SUNSET";
+            else if (state.timeOfDay < 0.75) timeLabel.textContent = "NEON NIGHT";
+            else timeLabel.textContent = "MIAMI DAWN";
+
+            if (!state.started) {
+                // Gentle camera orbit preview on start screen
+                state.camera.x = 3080 + Math.cos(performance.now() * 0.0004) * 200;
+                state.camera.y = 2200 + Math.sin(performance.now() * 0.0004) * 200;
+                return;
+            }
+
+            updatePlayer(dt);
+            updateTraffic(dt);
+            updatePolice(dt);
+            updatePropsAndTriggers(dt);
+            updateParticlesAndSkids(dt);
+            updateTimeTrial(dt);
+            updateHUD();
+
+            // Smooth Camera Follow with velocity look-ahead
+            const lookAheadX = player.vx * 0.25;
+            const lookAheadY = player.vy * 0.25;
+            state.camera.x += (player.x + lookAheadX - state.camera.x) * Math.min(1, dt * 7);
+            state.camera.y += (player.y + lookAheadY - state.camera.y) * Math.min(1, dt * 7);
+
+            const targetZoom = clamp(1.05 - (player.speed / 1800) - (player.airborne * 0.002), 0.72, 1.05);
+            state.camera.zoom += (targetZoom - state.camera.zoom) * Math.min(1, dt * 4);
+
+            if (state.camera.shake > 0) {
+                state.camera.shake = Math.max(0, state.camera.shake - dt * 25);
+            }
+        }
+
+        function updatePlayer(dt) {
+            const up = state.keys['KeyW'] || state.keys['ArrowUp'];
+            const down = state.keys['KeyS'] || state.keys['ArrowDown'];
+            const left = state.keys['KeyA'] || state.keys['ArrowLeft'];
+            const right = state.keys['KeyD'] || state.keys['ArrowRight'];
+            const handbrake = state.keys['Space'];
+
+            // Forward unit vector
+            const fx = Math.cos(player.angle);
+            const fy = Math.sin(player.angle);
+            // Right unit vector
+            const rx = -fy;
+            const ry = fx;
+
+            // Project velocity onto car axes
+            let forwardSpeed = player.vx * fx + player.vy * fy;
+            let lateralSpeed = player.vx * rx + player.vy * ry;
+
+            // Airborne stunt physics
+            if (player.airborne > 0 || player.zVel > 0) {
+                player.airborne += player.zVel * dt;
+                player.zVel -= 260 * dt; // Gravity
+                if (player.airborne <= 0) {
+                    player.airborne = 0;
+                    player.zVel = 0;
+                    state.camera.shake = 7;
+                    const stuntBonus = 250;
+                    state.score += stuntBonus;
+                    state.cash += 50;
+                    showToast(`🚀 STUNT LANDING! +$${50} / +${stuntBonus} PTS`, "#ffbe0b");
+                }
+            } else {
+                // Ground Acceleration & Braking
+                const onSand = player.x > WORLD.beachStartX && player.x < WORLD.oceanStartX;
+                const inWater = player.x >= WORLD.oceanStartX;
+
+                if (inWater) {
+                    // Shallow surf slowdown + splash particles
+                    player.vx *= 0.90;
+                    player.vy *= 0.90;
+                    if (Math.random() < 0.5) {
+                        spawnParticle(player.x, player.y, (Math.random() - 0.5) * 90, (Math.random() - 0.5) * 90, "#00f0ff", 6, 0.4);
+                    }
+                }
+
+                const surfaceGrip = onSand ? 0.85 : 1.0;
+                const effectiveMax = onSand ? player.maxSpeed * 0.78 : player.maxSpeed;
+
+                if (up) {
+                    forwardSpeed += player.accel * surfaceGrip * dt;
+                } else if (down) {
+                    if (forwardSpeed > 20) {
+                        forwardSpeed -= player.brakeForce * dt;
+                    } else {
+                        forwardSpeed -= (player.accel * 0.55) * dt;
+                    }
+                } else {
+                    // Natural rolling resistance
+                    forwardSpeed *= Math.pow(0.45, dt);
+                }
+
+                forwardSpeed = clamp(forwardSpeed, -240, effectiveMax);
+
+                // Steering (scales with speed, reverses in reverse gear)
+                const steerFactor = clamp(Math.abs(forwardSpeed) / 140, 0, 1);
+                const reverseSign = forwardSpeed >= -5 ? 1 : -1;
+                const turnRate = (handbrake ? 3.8 : 3.0) * steerFactor * reverseSign;
+
+                if (left) player.angle -= turnRate * dt;
+                if (right) player.angle += turnRate * dt;
+
+                // Drifting & Lateral Friction
+                const lateralGrip = handbrake ? 2.2 : 8.5;
+                lateralSpeed *= Math.exp(-lateralGrip * dt);
+
+                player.drifting = (handbrake && Math.abs(forwardSpeed) > 180) || Math.abs(lateralSpeed) > 130;
+
+                // Reconstruct world velocity
+                const nfx = Math.cos(player.angle);
+                const nfy = Math.sin(player.angle);
+                const nrx = -nfy;
+                const nry = nfx;
+
+                player.vx = nfx * forwardSpeed + nrx * lateralSpeed;
+                player.vy = nfy * forwardSpeed + nry * lateralSpeed;
+
+                // Drift Tire Skid Marks & Smoke
+                if (player.drifting) {
+                    state.score += Math.round(dt * 45);
+                    const rearX = player.x - nfx * 20;
+                    const rearY = player.y - nfy * 20;
+                    skidMarks.push({
+                        x1: rearX + nrx * 10, y1: rearY + nry * 10,
+                        x2: rearX - nrx * 10, y2: rearY - nry * 10,
+                        alpha: 0.55
+                    });
+                    if (Math.random() < 0.6) {
+                        spawnParticle(rearX, rearY, -player.vx * 0.15 + (Math.random() - 0.5) * 30, -player.vy * 0.15 + (Math.random() - 0.5) * 30, "rgba(255, 220, 245, 0.5)", 7, 0.45);
+                    }
+                }
+            }
+
+            // Integrate Position
+            player.x += player.vx * dt;
+            player.y += player.vy * dt;
+            player.speed = Math.hypot(player.vx, player.vy);
+
+            // World Boundary Clamp (Prevent driving deep into ocean)
+            player.x = clamp(player.x, 40, WORLD.oceanStartX + 75);
+            player.y = clamp(player.y, 40, WORLD.height - 40);
+
+            // Building Collisions (Solid AABB vs Circle/Box)
+            if (player.airborne < 18) {
+                for (const b of buildings) {
+                    resolveRectCollision(player, 18, b.x, b.y, b.w, b.h);
+                }
+            }
+        }
+
+        function resolveRectCollision(entity, radius, rx, ry, rw, rh) {
+            const closestX = clamp(entity.x, rx, rx + rw);
+            const closestY = clamp(entity.y, ry, ry + rh);
+            const dx = entity.x - closestX;
+            const dy = entity.y - closestY;
+            const distSq = dx * dx + dy * dy;
+
+            if (distSq < radius * radius) {
+                const dist = Math.sqrt(distSq) || 0.001;
+                const overlap = radius - dist;
+                const nx = dx / dist;
+                const ny = dy / dist;
+
+                entity.x += nx * overlap;
+                entity.y += ny * overlap;
+
+                // Dampen velocity into wall
+                const vn = entity.vx * nx + entity.vy * ny;
+                if (vn < 0) {
+                    entity.vx -= 1.35 * vn * nx;
+                    entity.vy -= 1.35 * vn * ny;
+                    if (entity === player && Math.abs(vn) > 180) {
+                        state.camera.shake = 5;
+                    }
+                }
+            }
+        }
+
+        function updateTraffic(dt) {
+            for (const car of aiTraffic) {
+                // Check proximity to player or other AI cars to stop politely
+                let blocked = false;
+                const distToPlayer = Math.hypot(player.x - car.x, player.y - car.y);
+                if (distToPlayer < 95 && player.airborne < 10) {
+                    const toPlayerAngle = Math.atan2(player.y - car.y, player.x - car.x);
+                    const angleDiff = Math.abs(normalizeAngle(toPlayerAngle - car.angle));
+                    if (angleDiff < 0.7) blocked = true;
+                }
+
+                for (const other of aiTraffic) {
+                    if (other === car) continue;
+                    const d = Math.hypot(other.x - car.x, other.y - car.y);
+                    if (d < 85) {
+                        const toOther = Math.atan2(other.y - car.y, other.x - car.x);
+                        if (Math.abs(normalizeAngle(toOther - car.angle)) < 0.65) {
+                            blocked = true;
+                            break;
+                        }
+                    }
+                }
+
+                const targetSpeed = blocked ? 0 : car.baseSpeed;
+                car.speed += (targetSpeed - car.speed) * Math.min(1, dt * 5);
+
+                car.x += Math.cos(car.angle) * car.speed * dt;
+                car.y += Math.sin(car.angle) * car.speed * dt;
+
+                // Wrap around world edges smoothly
+                if (car.horiz) {
+                    if (car.dir === 1 && car.x > WORLD.beachStartX - 80) car.x = 120;
+                    if (car.dir === -1 && car.x < 120) car.x = WORLD.beachStartX - 80;
+                } else {
+                    if (car.dir === 1 && car.y > WORLD.height - 120) car.y = 120;
+                    if (car.dir === -1 && car.y < 120) car.y = WORLD.height - 120;
+                }
+
+                // Gentle elastic bump if player touches AI traffic
+                if (distToPlayer < 36 && player.airborne < 12) {
+                    const pushAngle = Math.atan2(player.y - car.y, player.x - car.x);
+                    player.x += Math.cos(pushAngle) * 6;
+                    player.y += Math.sin(pushAngle) * 6;
+                    player.vx *= 0.82;
+                    player.vy *= 0.82;
+                }
+            }
+        }
+
+        function updatePolice(dt) {
+            if (state.heat <= 0) return;
+
+            // Cooldown heat when player maintains distance
+            let copNearby = false;
+            for (const cop of policeCars) {
+                cop.sirenPhase += dt * 12;
+                const dx = player.x - cop.x;
+                const dy = player.y - cop.y;
+                const dist = Math.hypot(dx, dy);
+
+                if (dist < 620) copNearby = true;
+
+                // Steer smoothly toward player
+                const desiredAngle = Math.atan2(dy, dx);
+                const diff = normalizeAngle(desiredAngle - cop.angle);
+                cop.angle += clamp(diff, -2.8 * dt, 2.8 * dt);
+
+                const copSpeed = 520 + state.heat * 32;
+                cop.vx = Math.cos(cop.angle) * copSpeed;
+                cop.vy = Math.sin(cop.angle) * copSpeed;
+
+                cop.x += cop.vx * dt;
+                cop.y += cop.vy * dt;
+
+                // Keep cops out of buildings
+                for (const b of buildings) {
+                    resolveRectCollision(cop, 18, b.x, b.y, b.w, b.h);
+                }
+
+                // Light arcade nudge on contact
+                if (dist < 38 && player.airborne < 12) {
+                    const pushAngle = Math.atan2(player.y - cop.y, player.x - cop.x);
+                    player.vx += Math.cos(pushAngle) * 140;
+                    player.vy += Math.sin(pushAngle) * 140;
+                    state.camera.shake = 6;
+                }
+            }
+
+            if (!copNearby) {
+                state.heatTimer -= dt;
+                if (state.heatTimer <= 0) {
+                    state.heat = Math.max(0, state.heat - 1);
+                    state.heatTimer = 8.0;
+                    syncPoliceCount();
+                    if (state.heat === 0) {
+                        showToast("😎 HEAT LOST! CRUISING CLEAR", "#06d6a0");
+                    }
+                }
+            } else {
+                state.heatTimer = 10.0;
+            }
+        }
+
+        function updatePropsAndTriggers(dt) {
+            // 1. Stunt Ramps
+            for (const ramp of stuntRamps) {
+                const dx = Math.abs(player.x - ramp.x);
+                const dy = Math.abs(player.y - ramp.y);
+                if (dx < ramp.w * 0.5 && dy < ramp.h * 0.5 && player.airborne === 0 && player.speed > 340) {
+                    player.zVel = 155 + (player.speed * 0.14);
+                    player.airborne = 2;
+                    radio.playSfx("jump");
+                    showToast(`🔥 ${ramp.label}!`, "#ff2a85");
+                }
+            }
+
+            // 2. Radar Speed Traps
+            const currentMph = Math.round(player.speed * 0.22);
+            for (const trap of speedTraps) {
+                if (trap.cooldown > 0) trap.cooldown -= dt;
+                const d = Math.hypot(player.x - trap.x, player.y - trap.y);
+                if (d < trap.radius && currentMph > trap.limitMph && trap.cooldown <= 0) {
+                    trap.cooldown = 10.0;
+                    addHeat(1, `RADAR FLASH: ${currentMph} MPH!`);
+                    for (let i = 0; i < 12; i++) {
+                        spawnParticle(trap.x, trap.y, (Math.random() - 0.5) * 200, (Math.random() - 0.5) * 200, "#ffffff", 5, 0.3);
+                    }
+                }
+            }
+
+            // 3. Collectibles (Neon Vice Chips)
+            for (let i = collectibles.length - 1; i >= 0; i--) {
+                const c = collectibles[i];
+                c.pulse += dt * 5;
+                if (Math.hypot(player.x - c.x, player.y - c.y) < 38) {
+                    state.cash += c.value;
+                    state.score += c.value * 2;
+                    radio.playSfx("coin");
+                    for (let p = 0; p < 10; p++) {
+                        spawnParticle(c.x, c.y, (Math.random() - 0.5) * 160, (Math.random() - 0.5) * 160, "#00f0ff", 4, 0.4);
+                    }
+                    collectibles.splice(i, 1);
+                    spawnCollectible();
+                }
+            }
+
+            // 4. Traffic Cones & Beach Umbrellas
+            for (const prop of props) {
+                prop.x += prop.vx * dt;
+                prop.y += prop.vy * dt;
+                prop.vx *= Math.pow(0.05, dt);
+                prop.vy *= Math.pow(0.05, dt);
+
+                const d = Math.hypot(player.x - prop.x, player.y - prop.y);
+                if (d < 26 + prop.radius && player.airborne < 8) {
+                    const ang = Math.atan2(prop.y - player.y, prop.x - player.x);
+                    prop.vx = Math.cos(ang) * (player.speed * 1.1 + 120);
+                    prop.vy = Math.sin(ang) * (player.speed * 1.1 + 120);
+                    state.score += 15;
+                    if (prop.type === 'cone' && Math.random() < 0.25) {
+                        addHeat(0.5, "KNOCKED TRAFFIC CONES");
+                    }
+                }
+            }
+
+            // 5. Safe Zone (Pay 'N' Spray Plaza)
+            const distSafe = Math.hypot(player.x - safeZone.x, player.y - safeZone.y);
+            if (distSafe < safeZone.radius && state.heat > 0) {
+                state.heat = 0;
+                syncPoliceCount();
+                const resprayColors = ['#ff2a85', '#00f0ff', '#ffbe0b', '#c77dff', '#06d6a0'];
+                player.color = resprayColors[Math.floor(Math.random() * resprayColors.length)];
+                radio.playSfx("coin");
+                showToast("✨ RESPRAY COMPLETE! HEAT CLEARED!", "#06d6a0");
+            }
+
+            // 6. Time Trial Start Trigger
+            if (!state.timeTrial.active) {
+                const distTrial = Math.hypot(player.x - trialStartMarker.x, player.y - trialStartMarker.y);
+                if (distTrial < trialStartMarker.radius) {
+                    startTimeTrial();
+                }
+            }
+        }
+
+        function updateTimeTrial(dt) {
+            if (!state.timeTrial.active) return;
+
+            state.timeTrial.timeLeft -= dt;
+            const target = state.timeTrial.checkpoints[state.timeTrial.currentIndex];
+            const dist = Math.hypot(player.x - target.x, player.y - target.y);
+
+            if (dist < 75) {
+                state.timeTrial.currentIndex++;
+                state.timeTrial.timeLeft += 5.5; // Bonus seconds per checkpoint
+                radio.playSfx("coin");
+
+                if (state.timeTrial.currentIndex >= state.timeTrial.checkpoints.length) {
+                    // Completed Time Trial!
+                    state.timeTrial.active = false;
+                    document.getElementById('trialPanel').classList.add('hidden');
+                    state.cash += 1000;
+                    state.score += 2500;
+                    showToast("🏆 NEON SPRINT COMPLETE! +$1,000!", "#ffbe0b");
+                } else {
+                    showToast(`⚡ CHECKPOINT ${state.timeTrial.currentIndex}/${state.timeTrial.checkpoints.length} (+5.5s)`, "#00f0ff");
+                }
+            } else if (state.timeTrial.timeLeft <= 0) {
+                state.timeTrial.active = false;
+                document.getElementById('trialPanel').classList.add('hidden');
+                showToast("⏱️ TIME EXPIRED! TRY AGAIN ON OCEAN DR", "#ff2a55");
+            }
+        }
+
+        function updateParticlesAndSkids(dt) {
+            for (let i = skidMarks.length - 1; i >= 0; i--) {
+                skidMarks[i].alpha -= dt * 0.08;
+                if (skidMarks[i].alpha <= 0) skidMarks.splice(i, 1);
+            }
+            if (skidMarks.length > 350) skidMarks.splice(0, skidMarks.length - 350);
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx * dt;
+                p.y += p.vy * dt;
+                p.life -= dt;
+                if (p.life <= 0) particles.splice(i, 1);
+            }
+        }
+
+        function normalizeAngle(a) {
+            while (a > Math.PI) a -= Math.PI * 2;
+            while (a < -Math.PI) a += Math.PI * 2;
+            return a;
+        }
+
+        // ==========================================
+        // 10. HUD & MINI-MAP RADAR RENDERING
+        // ==========================================
+        function updateHUD() {
+            document.getElementById('cashDisplay').textContent = `$${state.cash.toLocaleString()}`;
+            document.getElementById('scoreDisplay').textContent = state.score.toLocaleString();
+
+            const mph = Math.round(player.speed * 0.22);
+            document.getElementById('speedDisplay').textContent = mph;
+            document.getElementById('speedBar').style.width = `${clamp((mph / 165) * 100, 0, 100)}%`;
+
+            const driftBadge = document.getElementById('driftBadge');
+            if (player.airborne > 2) {
+                driftBadge.textContent = "AIRBORNE";
+                driftBadge.className = "px-2.5 py-1.5 rounded-lg bg-amber-500/30 border border-amber-400 text-[11px] font-orbitron font-bold text-amber-300 uppercase tracking-wider";
+            } else if (player.drifting) {
+                driftBadge.textContent = "DRIFTING";
+                driftBadge.className = "px-2.5 py-1.5 rounded-lg bg-pink-500/30 border border-pink-400 text-[11px] font-orbitron font-bold text-pink-300 uppercase tracking-wider";
+            } else {
+                driftBadge.textContent = "GRIP";
+                driftBadge.className = "px-2.5 py-1.5 rounded-lg bg-slate-800/80 border border-slate-600 text-[11px] font-orbitron font-bold text-slate-400 uppercase tracking-wider";
+            }
+
+            // Update Heat Stars
+            const starElems = document.querySelectorAll('#heatStars .star');
+            const activeStars = Math.ceil(state.heat);
+            starElems.forEach((star, idx) => {
+                if (idx < activeStars) {
+                    star.className = idx % 2 === 0 ? "star siren-flash-red" : "star siren-flash-blue";
+                } else {
+                    star.className = "star text-slate-600";
+                }
+            });
+
+            // Time Trial HUD
+            if (state.timeTrial.active) {
+                document.getElementById('trialTimer').textContent = `${Math.max(0, state.timeTrial.timeLeft).toFixed(1)}s`;
+                document.getElementById('trialProgress').textContent = `${state.timeTrial.currentIndex + 1}/${state.timeTrial.checkpoints.length}`;
+            }
+
+            renderMinimap();
+        }
+
+        function renderMinimap() {
+            const mw = miniCanvas.width;
+            const mh = miniCanvas.height;
+            const scale = mw / WORLD.width;
+
+            miniCtx.clearRect(0, 0, mw, mh);
+
+            // Land & Beach & Ocean
+            miniCtx.fillStyle = "#16102b";
+            miniCtx.fillRect(0, 0, WORLD.beachStartX * scale, mh);
+            miniCtx.fillStyle = "#d4a373";
+            miniCtx.fillRect(WORLD.beachStartX * scale, 0, (WORLD.oceanStartX - WORLD.beachStartX) * scale, mh);
+            miniCtx.fillStyle = "#0077b6";
+            miniCtx.fillRect(WORLD.oceanStartX * scale, 0, (WORLD.width - WORLD.oceanStartX) * scale, mh);
+
+            // Roads
+            miniCtx.fillStyle = "#3a3554";
+            for (const rx of ROAD_X) {
+                miniCtx.fillRect((rx - 110) * scale, 0, 220 * scale, mh);
+            }
+            for (const ry of ROAD_Y) {
+                miniCtx.fillRect(0, (ry - 110) * scale, WORLD.beachStartX * scale, 220 * scale);
+            }
+
+            // Safe Zone (Green)
+            miniCtx.fillStyle = "#06d6a0";
+            miniCtx.beginPath();
+            miniCtx.arc(safeZone.x * scale, safeZone.y * scale, 4, 0, Math.PI * 2);
+            miniCtx.fill();
+
+            // Time Trial Marker or Active Checkpoint (Cyan)
+            const goal = state.timeTrial.active
+                ? state.timeTrial.checkpoints[state.timeTrial.currentIndex]
+                : trialStartMarker;
+            if (goal) {
+                miniCtx.fillStyle = "#00f0ff";
+                miniCtx.beginPath();
+                miniCtx.arc(goal.x * scale, goal.y * scale, 4.5, 0, Math.PI * 2);
+                miniCtx.fill();
+            }
+
+            // Police Cruisers (Flashing)
+            for (const cop of policeCars) {
+                miniCtx.fillStyle = Math.floor(cop.sirenPhase) % 2 === 0 ? "#ff2a55" : "#00d2ff";
+                miniCtx.beginPath();
+                miniCtx.arc(cop.x * scale, cop.y * scale, 3, 0, Math.PI * 2);
+                miniCtx.fill();
+            }
+
+            // Player Arrow
+            miniCtx.save();
+            miniCtx.translate(player.x * scale, player.y * scale);
+            miniCtx.rotate(player.angle);
+            miniCtx.fillStyle = "#ff2a85";
+            miniCtx.beginPath();
+            miniCtx.moveTo(5, 0);
+            miniCtx.lineTo(-4, -3.5);
+            miniCtx.lineTo(-4, 3.5);
+            miniCtx.closePath();
+            miniCtx.fill();
+            miniCtx.restore();
+        }
+
+        // ==========================================
+        // 11. MAIN CANVAS WORLD RENDERER
+        // ==========================================
+        function render() {
+            const w = canvas.width;
+            const h = canvas.height;
+
+            ctx.fillStyle = "#0b0616";
+            ctx.fillRect(0, 0, w, h);
+
+            ctx.save();
+            const shakeX = (Math.random() - 0.5) * state.camera.shake;
+            const shakeY = (Math.random() - 0.5) * state.camera.shake;
+
+            ctx.translate(w / 2 + shakeX, h / 2 + shakeY);
+            ctx.scale(state.camera.zoom, state.camera.zoom);
+            ctx.translate(-state.camera.x, -state.camera.y);
+
+            // Compute visible world bounds for frustum culling
+            const viewW = (w / state.camera.zoom) * 0.65;
+            const viewH = (h / state.camera.zoom) * 0.65;
+            const minX = state.camera.x - viewW;
+            const maxX = state.camera.x + viewW;
+            const minY = state.camera.y - viewH;
+            const maxY = state.camera.y + viewH;
+
+            // 1. Ground: City Turf, Golden Miami Beach & Turquoise Ocean
+            ctx.fillStyle = "#19132e";
+            ctx.fillRect(0, 0, WORLD.beachStartX, WORLD.height);
+
+            // Sand Beach
+            const beachGrad = ctx.createLinearGradient(WORLD.beachStartX, 0, WORLD.oceanStartX, 0);
+            beachGrad.addColorStop(0, "#e9c46a");
+            beachGrad.addColorStop(1, "#f4a261");
+            ctx.fillStyle = beachGrad;
+            ctx.fillRect(WORLD.beachStartX, 0, WORLD.oceanStartX - WORLD.beachStartX, WORLD.height);
+
+            // Ocean Waves
+            const oceanGrad = ctx.createLinearGradient(WORLD.oceanStartX, 0, WORLD.width, 0);
+            oceanGrad.addColorStop(0, "#00b4d8");
+            oceanGrad.addColorStop(0.35, "#0077b6");
+            oceanGrad.addColorStop(1, "#03045e");
+            ctx.fillStyle = oceanGrad;
+            ctx.fillRect(WORLD.oceanStartX, 0, WORLD.width - WORLD.oceanStartX, WORLD.height);
+
+            // Animated Shoreline Surf Foam
+            const waveOffset = Math.sin(performance.now() * 0.0025) * 14;
+            ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+            ctx.fillRect(WORLD.oceanStartX - 8 + waveOffset, 0, 14, WORLD.height);
+
+            // 2. Sidewalks & Asphalt Roads
+            const rw = WORLD.roadWidth;
+            const sw = rw + 36;
+
+            // Sidewalk borders
+            ctx.fillStyle = "#31294d";
+            for (const rx of ROAD_X) ctx.fillRect(rx - sw / 2, 0, sw, WORLD.height);
+            for (const ry of ROAD_Y) ctx.fillRect(0, ry - sw / 2, WORLD.beachStartX, sw);
+
+            // Asphalt
+            ctx.fillStyle = "#1f1d2b";
+            for (const rx of ROAD_X) ctx.fillRect(rx - rw / 2, 0, rw, WORLD.height);
+            for (const ry of ROAD_Y) ctx.fillRect(0, ry - rw / 2, WORLD.beachStartX, rw);
+
+            // Neon Center Double-Lines & Lane Dashes
+            ctx.strokeStyle = "#ffbe0b";
+            ctx.lineWidth = 3;
+            for (const rx of ROAD_X) {
+                ctx.beginPath();
+                ctx.moveTo(rx - 3, 0);
+                ctx.lineTo(rx - 3, WORLD.height);
+                ctx.moveTo(rx + 3, 0);
+                ctx.lineTo(rx + 3, WORLD.height);
+                ctx.stroke();
+            }
+            for (const ry of ROAD_Y) {
+                ctx.beginPath();
+                ctx.moveTo(0, ry - 3);
+                ctx.lineTo(WORLD.beachStartX, ry - 3);
+                ctx.moveTo(0, ry + 3);
+                ctx.lineTo(WORLD.beachStartX, ry + 3);
+                ctx.stroke();
+            }
+
+            // Crosswalks at intersections
+            ctx.fillStyle = "rgba(255, 255, 255, 0.28)";
+            for (const rx of ROAD_X) {
+                for (const ry of ROAD_Y) {
+                    if (rx < minX - 200 || rx > maxX + 200 || ry < minY - 200 || ry > maxY + 200) continue;
+                    for (let s = -85; s <= 85; s += 24) {
+                        ctx.fillRect(rx + s - 6, ry - rw / 2 - 18, 12, 16);
+                        ctx.fillRect(rx + s - 6, ry + rw / 2 + 2, 12, 16);
+                    }
+                }
+            }
+
+            // 3. Tire Skid Marks
+            ctx.lineWidth = 5;
+            for (const skid of skidMarks) {
+                ctx.strokeStyle = `rgba(10, 8, 16, ${skid.alpha})`;
+                ctx.beginPath();
+                ctx.moveTo(skid.x1, skid.y1);
+                ctx.lineTo(skid.x2, skid.y2);
+                ctx.stroke();
+            }
+
+            // 4. Safe Zone (Pay 'N' Spray Plaza) & Time Trial Rings
+            drawZoneRing(safeZone.x, safeZone.y, safeZone.radius, "#06d6a0", "RESPRAY SAFE ZONE");
+
+            if (!state.timeTrial.active) {
+                drawZoneRing(trialStartMarker.x, trialStartMarker.y, trialStartMarker.radius, "#00f0ff", "START NEON SPRINT");
+            } else {
+                const cp = state.timeTrial.checkpoints[state.timeTrial.currentIndex];
+                if (cp) {
+                    drawZoneRing(cp.x, cp.y, 70, "#ffbe0b", `CHECKPOINT ${state.timeTrial.currentIndex + 1}`);
+                }
+            }
+
+            // 5. Stunt Ramps
+            for (const ramp of stuntRamps) {
+                ctx.save();
+                ctx.translate(ramp.x, ramp.y);
+                ctx.rotate(ramp.angle);
+                const rGrad = ctx.createLinearGradient(0, ramp.h / 2, 0, -ramp.h / 2);
+                rGrad.addColorStop(0, "#3a0ca3");
+                rGrad.addColorStop(1, "#ff2a85");
+                ctx.fillStyle = rGrad;
+                ctx.fillRect(-ramp.w / 2, -ramp.h / 2, ramp.w, ramp.h);
+
+                // Neon Chevron Stripes
+                ctx.strokeStyle = "#00f0ff";
+                ctx.lineWidth = 4;
+                for (let y = -ramp.h / 2 + 20; y < ramp.h / 2; y += 28) {
+                    ctx.beginPath();
+                    ctx.moveTo(-ramp.w / 2 + 10, y + 10);
+                    ctx.lineTo(0, y - 5);
+                    ctx.lineTo(ramp.w / 2 - 10, y + 10);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+
+            // 6. Radar Speed Traps
+            for (const trap of speedTraps) {
+                ctx.strokeStyle = "rgba(255, 42, 85, 0.35)";
+                ctx.setLineDash([8, 8]);
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(trap.x, trap.y, trap.radius, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                ctx.fillStyle = "#ff2a55";
+                ctx.font = "bold 11px Orbitron";
+                ctx.textAlign = "center";
+                ctx.fillText(`RADAR ${trap.limitMph} MPH`, trap.x, trap.y - trap.radius - 6);
+            }
+
+            // 7. Collectibles (Glowing Neon Chips)
+            for (const c of collectibles) {
+                if (c.x < minX || c.x > maxX || c.y < minY || c.y > maxY) continue;
+                const r = 12 + Math.sin(c.pulse) * 3;
+                ctx.fillStyle = c.value > 100 ? "rgba(255, 190, 11, 0.25)" : "rgba(0, 240, 255, 0.25)";
+                ctx.beginPath();
+                ctx.arc(c.x, c.y, r + 6, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = c.value > 100 ? "#ffbe0b" : "#00f0ff";
+                ctx.beginPath();
+                ctx.arc(c.x, c.y, r * 0.75, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = "#0b0616";
+                ctx.font = "bold 11px Orbitron";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText("$", c.x, c.y);
+            }
+
+            // 8. Bumpable Props (Traffic Cones & Beach Umbrellas)
+            for (const prop of props) {
+                if (prop.x < minX || prop.x > maxX || prop.y < minY || prop.y > maxY) continue;
+                if (prop.type === 'cone') {
+                    ctx.fillStyle = "#ff7b00";
+                    ctx.beginPath();
+                    ctx.arc(prop.x, prop.y, 8, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = "#fff";
+                    ctx.beginPath();
+                    ctx.arc(prop.x, prop.y, 3.5, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    ctx.fillStyle = prop.color;
+                    ctx.beginPath();
+                    ctx.arc(prop.x, prop.y, 18, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = "#ffffff";
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+            }
+
+            // 9. AI Traffic Cars
+            for (const car of aiTraffic) {
+                if (car.x < minX - 100 || car.x > maxX + 100 || car.y < minY - 100 || car.y > maxY + 100) continue;
+                drawCar(car.x, car.y, car.angle, car.width, car.height, car.color, "#ffffff", 0, false);
+            }
+
+            // 10. Police Cruisers with Flashing Sirens
+            for (const cop of policeCars) {
+                drawCar(cop.x, cop.y, cop.angle, cop.width, cop.height, "#111827", "#ffffff", 0, true, cop.sirenPhase);
+            }
+
+            // 11. Player Sports Car (with Airborne Height Scale & Drop Shadow)
+            drawCar(player.x, player.y, player.angle, player.width, player.height, player.color, player.accent, player.airborne, false);
+
+            // 12. Art Deco Buildings (2.5D Rooftop Depth Effect)
+            for (const b of buildings) {
+                if (b.x + b.w < minX || b.x > maxX || b.y + b.h < minY || b.y > maxY) continue;
+
+                // Building Shadow
+                ctx.fillStyle = "rgba(5, 3, 12, 0.55)";
+                ctx.fillRect(b.x + 14, b.y + 14, b.w, b.h);
+
+                // Main Structure
+                ctx.fillStyle = b.wall;
+                ctx.fillRect(b.x, b.y, b.w, b.h);
+
+                // Art Deco Recessed Roof
+                ctx.fillStyle = b.roof;
+                ctx.fillRect(b.x + 14, b.y + 14, b.w - 28, b.h - 28);
+
+                // Optional Rooftop Pool
+                if (b.hasPool) {
+                    ctx.fillStyle = "#00f0ff";
+                    ctx.fillRect(b.x + b.w * 0.25, b.y + b.h * 0.25, b.w * 0.5, b.h * 0.35);
+                }
+
+                // Glowing Neon Trim Border
+                ctx.strokeStyle = b.trim;
+                ctx.lineWidth = 3;
+                ctx.strokeRect(b.x + 2, b.y + 2, b.w - 4, b.h - 4);
+
+                // Hotel Sign Label
+                ctx.fillStyle = b.trim;
+                ctx.font = "bold 12px Orbitron";
+                ctx.textAlign = "center";
+                ctx.fillText(b.name, b.x + b.w / 2, b.y + b.h - 20);
+            }
+
+            // 13. Swaying Tropical Palm Trees
+            const nowSec = performance.now() * 0.002;
+            for (const palm of palmTrees) {
+                if (palm.x < minX - 80 || palm.x > maxX + 80 || palm.y < minY - 80 || palm.y > maxY + 80) continue;
+                drawPalmTree(palm, nowSec);
+            }
+
+            // 14. Particles
+            for (const p of particles) {
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = clamp(p.life / p.maxLife, 0, 1);
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+
+            ctx.restore();
+
+            // 15. Atmospheric Sunset / Night Tint Overlay
+            drawAtmosphereOverlay(w, h);
+        }
+
+        function drawZoneRing(x, y, radius, color, label) {
+            const pulse = Math.sin(performance.now() * 0.005) * 6;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(x, y, radius + pulse, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.fillStyle = `${color}22`;
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = color;
+            ctx.font = "bold 12px Orbitron";
+            ctx.textAlign = "center";
+            ctx.fillText(label, x, y);
+        }
+
+        function drawCar(x, y, angle, w, h, bodyColor, stripeColor, airborne = 0, isPolice = false, sirenPhase = 0) {
+            const scale = 1 + airborne * 0.012;
+
+            // Ground Shadow (offsets further when airborne)
+            ctx.save();
+            ctx.translate(x + 6 + airborne * 0.7, y + 6 + airborne * 0.7);
+            ctx.rotate(angle);
+            ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
+            ctx.fillRect(-h / 2, -w / 2, h, w);
+            ctx.restore();
+
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            ctx.scale(scale, scale);
+
+            // Headlight Cones
+            const hlGrad = ctx.createLinearGradient(h / 2, 0, h / 2 + 95, 0);
+            hlGrad.addColorStop(0, "rgba(255, 250, 220, 0.38)");
+            hlGrad.addColorStop(1, "rgba(255, 250, 220, 0)");
+            ctx.fillStyle = hlGrad;
+            ctx.beginPath();
+            ctx.moveTo(h / 2, -w * 0.35);
+            ctx.lineTo(h / 2 + 95, -w * 1.1);
+            ctx.lineTo(h / 2 + 95, w * 1.1);
+            ctx.lineTo(h / 2, w * 0.35);
+            ctx.closePath();
+            ctx.fill();
+
+            // Main Chassis (Facing +X)
+            ctx.fillStyle = bodyColor;
+            ctx.beginPath();
+            ctx.roundRect(-h / 2, -w / 2, h, w, 6);
+            ctx.fill();
+
+            // Police White Doors or Racing Stripe
+            if (isPolice) {
+                ctx.fillStyle = "#f8fafc";
+                ctx.fillRect(-h * 0.18, -w / 2 + 1, h * 0.38, w - 2);
+            } else {
+                ctx.fillStyle = stripeColor;
+                ctx.fillRect(-h / 2 + 4, -2.5, h - 8, 5);
+            }
+
+            // Windshield & Rear Window
+            ctx.fillStyle = "#0f172a";
+            ctx.fillRect(h * 0.06, -w * 0.36, h * 0.2, w * 0.72);
+            ctx.fillRect(-h * 0.32, -w * 0.34, h * 0.14, w * 0.68);
+
+            // Tail Lights
+            ctx.fillStyle = "#ff2a55";
+            ctx.fillRect(-h / 2, -w * 0.4, 3, 6);
+            ctx.fillRect(-h / 2, w * 0.4 - 6, 3, 6);
+
+            // Police Roof Lightbar
+            if (isPolice) {
+                const redOn = Math.floor(sirenPhase) % 2 === 0;
+                ctx.fillStyle = redOn ? "#ff2a55" : "#450a0a";
+                ctx.fillRect(-3, -w * 0.38, 6, w * 0.36);
+                ctx.fillStyle = !redOn ? "#00d2ff" : "#082f49";
+                ctx.fillRect(-3, 2, 6, w * 0.36);
+
+                // Siren Glow Halo
+                ctx.fillStyle = redOn ? "rgba(255, 42, 85, 0.28)" : "rgba(0, 210, 255, 0.28)";
+                ctx.beginPath();
+                ctx.arc(0, 0, 55, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.restore();
+        }
+
+        function drawPalmTree(palm, nowSec) {
+            const swayX = Math.sin(nowSec + palm.phase) * 5;
+            const swayY = Math.cos(nowSec + palm.phase) * 4;
+
+            // Trunk base shadow
+            ctx.fillStyle = "rgba(0,0,0,0.3)";
+            ctx.beginPath();
+            ctx.arc(palm.x + 12, palm.y + 12, 24 * palm.scale, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Trunk
+            ctx.strokeStyle = "#6f4e37";
+            ctx.lineWidth = 6 * palm.scale;
+            ctx.beginPath();
+            ctx.moveTo(palm.x, palm.y);
+            ctx.lineTo(palm.x + swayX, palm.y + swayY);
+            ctx.stroke();
+
+            // Fronds
+            ctx.save();
+            ctx.translate(palm.x + swayX, palm.y + swayY);
+            ctx.scale(palm.scale, palm.scale);
+            for (let i = 0; i < 6; i++) {
+                ctx.rotate(Math.PI / 3);
+                ctx.fillStyle = i % 2 === 0 ? "#10b981" : "#059669";
+                ctx.beginPath();
+                ctx.ellipse(20, 0, 22, 6, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        function drawAtmosphereOverlay(w, h) {
+            // Subtle warm sunset / cool midnight neon tint
+            let overlayColor = "rgba(255, 90, 120, 0.06)"; // Sunset pink-gold
+            if (state.timeOfDay >= 0.35 && state.timeOfDay < 0.75) {
+                overlayColor = "rgba(12, 16, 48, 0.24)"; // Midnight neon vibe
+            }
+            ctx.fillStyle = overlayColor;
+            ctx.fillRect(0, 0, w, h);
+        }
+
+        // ==========================================
+        // 12. RESIZE & MAIN ANIMATION LOOP
+        // ==========================================
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        let lastTime = 0;
+        function gameLoop(timestamp) {
+            if (!lastTime) lastTime = timestamp;
+            const dt = Math.min(0.05, (timestamp - lastTime) / 1000);
+            lastTime = timestamp;
+
+            update(dt);
+            render();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        window.onload = function () {
+            resizeCanvas();
+            initWorld();
+            requestAnimationFrame(gameLoop);
+        };
+    </script>
+</body>
+</html>
+
+
+</Content>
+</Module>
